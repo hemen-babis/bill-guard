@@ -1098,32 +1098,28 @@ def render_care_framework() -> None:
     st.markdown(
         """<div class="lp-care-grid">
             <div class="lp-care-card">
-                <div class="lp-care-icon">📋</div>
-                <div class="lp-care-step">C</div>
-                <div class="lp-care-word">Capture</div>
-                <div class="lp-care-title">Upload your bill</div>
-                <div class="lp-care-desc">Paste or upload your provider bill and insurance EOB. Supports PDF, text, and JSON.</div>
+                <div class="lp-care-icon">🔎</div>
+                <div class="lp-care-step">C — Clarify</div>
+                <div class="lp-care-title">Itemize &amp; translate the bill</div>
+                <div class="lp-care-desc">Every CPT code and medical term is decoded into plain English so you know exactly what you were charged for.</div>
             </div>
             <div class="lp-care-card">
                 <div class="lp-care-icon">🩺</div>
-                <div class="lp-care-step">A</div>
-                <div class="lp-care-word">Analyze</div>
-                <div class="lp-care-title">AI audits every line</div>
-                <div class="lp-care-desc">Claude decodes every CPT code, compares against your EOB, and detects anomalies.</div>
-            </div>
-            <div class="lp-care-card">
-                <div class="lp-care-icon">🔍</div>
-                <div class="lp-care-step">R</div>
-                <div class="lp-care-word">Review</div>
-                <div class="lp-care-title">See your results</div>
-                <div class="lp-care-desc">Get a risk score, itemized breakdown, red flags, and plain-English summary instantly.</div>
+                <div class="lp-care-step">A — Audit</div>
+                <div class="lp-care-title">Detect errors &amp; inconsistencies</div>
+                <div class="lp-care-desc">AI cross-checks your bill against your insurance EOB, flags duplicates, inflated fees, and billing anomalies.</div>
             </div>
             <div class="lp-care-card">
                 <div class="lp-care-icon">✉️</div>
-                <div class="lp-care-step">E</div>
-                <div class="lp-care-word">Escalate</div>
-                <div class="lp-care-title">Dispute with confidence</div>
-                <div class="lp-care-desc">Download a ready-to-send dispute letter and ask Claude follow-up questions.</div>
+                <div class="lp-care-step">R — Respond</div>
+                <div class="lp-care-title">Generate dispute letter / script</div>
+                <div class="lp-care-desc">Get a ready-to-send dispute letter and a phone script you can use with your provider or insurer today.</div>
+            </div>
+            <div class="lp-care-card">
+                <div class="lp-care-icon">💪</div>
+                <div class="lp-care-step">E — Empower</div>
+                <div class="lp-care-title">Patient confidence + financial clarity</div>
+                <div class="lp-care-desc">Walk away knowing your rights, your risk score, and exactly how much you may be able to save.</div>
             </div>
         </div>""",
         unsafe_allow_html=True,
@@ -1242,13 +1238,15 @@ def render_analysis(raw_output: str, raw_bill: str, insurance_context: str) -> N
         combined_flags.extend([f"- {f}" for f in local_flags if f not in " ".join(combined_flags)])
 
     if combined_flags:
-        for flag in combined_flags:
+        for index, flag in enumerate(combined_flags, start=1):
             clean = re.sub(r"^[-*]\s*", "", flag)
             st.markdown(
                 f'<div class="flag-card err"><span class="fi">🚩</span>'
-                f'<span class="ft">{clean}</span></div>',
+                f'<span class="ft"><strong>{summarize_flag(clean)}</strong></span></div>',
                 unsafe_allow_html=True,
             )
+            with st.expander(f"Read more about flag {index}"):
+                st.markdown(clean)
     else:
         st.markdown(
             '<div class="flag-card ok"><span class="fi">✅</span>'
