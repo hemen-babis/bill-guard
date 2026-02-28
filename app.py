@@ -443,6 +443,142 @@ html, body, .stApp, [class*="css"] {
 }
 .lp-why-lbl { font-size: 0.84rem; color: rgba(255,255,255,0.5); line-height: 1.55; }
 
+/* ── Before / After demo section ────────────────────────── */
+.lp-demo-wrap {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 1.5rem; margin: 0.5rem 0 1.5rem; align-items: start;
+}
+/* Left — messy bill */
+.lp-bill-paper {
+    background: #fffef9;
+    border-radius: 16px;
+    padding: 1.75rem 1.75rem 1.5rem;
+    border: 1px solid rgba(0,0,0,0.1);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.18), 4px 4px 0 rgba(0,0,0,0.06);
+    position: relative; overflow: hidden;
+    font-family: 'Courier New', monospace;
+    transform: rotate(-0.6deg);
+}
+.lp-bill-header {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 1rem;
+    padding-bottom: 0.75rem; border-bottom: 2px solid #e5e7eb;
+}
+.lp-bill-cross {
+    width: 32px; height: 32px; position: relative; flex-shrink: 0;
+}
+.lp-bill-cross::before, .lp-bill-cross::after {
+    content: ''; position: absolute; background: #1e6bb8; border-radius: 2px;
+}
+.lp-bill-cross::before { width: 10px; height: 28px; top: 2px; left: 11px; }
+.lp-bill-cross::after  { width: 28px; height: 10px; top: 11px; left: 2px; }
+.lp-bill-org { font-family: 'Inter', sans-serif; }
+.lp-bill-org-name { font-size: 0.88rem; font-weight: 800; color: #1e3a5f; line-height: 1.2; }
+.lp-bill-org-sub  { font-size: 0.65rem; color: #64748b; }
+.lp-bill-date { font-size: 0.7rem; color: #94a3b8; margin-left: auto; text-align: right; }
+.lp-bill-table { width: 100%; border-collapse: collapse; font-size: 0.75rem; margin-bottom: 0.75rem; }
+.lp-bill-table th {
+    text-align: left; padding: 0.3rem 0.5rem; font-size: 0.65rem;
+    border-bottom: 1.5px solid #0f172a; color: #0f172a; font-weight: 700;
+}
+.lp-bill-table td { padding: 0.28rem 0.5rem; color: #374151; border-bottom: 1px solid #f1f5f9; }
+.lp-bill-table td:last-child { text-align: right; font-weight: 600; }
+.lp-bill-row-flag td { position: relative; }
+.lp-bill-circle {
+    display: inline-block; border: 2.5px solid #dc2626;
+    border-radius: 6px; padding: 1px 6px; color: #dc2626; font-weight: 700;
+}
+.lp-bill-stamp {
+    position: absolute; font-weight: 900; text-transform: uppercase;
+    font-family: 'Inter', sans-serif; letter-spacing: -1px;
+    opacity: 0.88; pointer-events: none; line-height: 1;
+}
+.lp-bill-stamp.err {
+    font-size: 2rem; color: #dc2626; top: 0.5rem; right: 0.5rem;
+    transform: rotate(12deg); border: 3px solid #dc2626;
+    padding: 2px 10px; border-radius: 4px;
+}
+.lp-bill-stamp.over {
+    font-size: 1.55rem; color: #dc2626; bottom: 3.5rem; left: 0.75rem;
+    transform: rotate(-8deg); border: 3px solid #dc2626;
+    padding: 2px 8px; border-radius: 4px;
+}
+.lp-bill-total {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 0.55rem 0.5rem; border-top: 2px solid #0f172a; margin-top: 0.25rem;
+    font-family: 'Inter', sans-serif;
+}
+.lp-bill-total-lbl { font-size: 0.8rem; font-weight: 700; color: #0f172a; }
+.lp-bill-total-amt {
+    font-size: 1.1rem; font-weight: 900; color: #dc2626;
+    border: 3px solid #dc2626; border-radius: 50px; padding: 2px 14px;
+}
+/* Right — app result */
+.lp-phone-frame {
+    background: linear-gradient(160deg, #0d1f3c 0%, #0a1628 100%);
+    border-radius: 28px; padding: 1.5rem 1.25rem 1.25rem;
+    border: 1.5px solid rgba(6,182,212,0.3);
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.04),
+                0 20px 60px rgba(0,0,0,0.5),
+                0 0 40px rgba(6,182,212,0.08);
+    position: relative;
+}
+.lp-phone-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 1rem;
+}
+.lp-phone-bar-title { font-size: 0.82rem; font-weight: 700; color: rgba(255,255,255,0.6); }
+.lp-phone-bar-icons { display: flex; gap: 8px; }
+.lp-phone-icon {
+    width: 28px; height: 28px; border-radius: 8px;
+    background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.75rem;
+}
+.lp-audit-label {
+    font-size: 0.62rem; font-weight: 700; letter-spacing: 1.4px;
+    text-transform: uppercase; color: rgba(255,255,255,0.35);
+    text-align: center; margin-bottom: 0.5rem;
+}
+.lp-savings-pill {
+    background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+    border-radius: 14px; padding: 1rem 1.25rem; text-align: center;
+    margin-bottom: 1rem;
+    box-shadow: 0 4px 20px rgba(22,163,74,0.35);
+}
+.lp-savings-pill-eyebrow {
+    font-size: 0.65rem; font-weight: 700; letter-spacing: 1.2px;
+    text-transform: uppercase; color: rgba(255,255,255,0.65); margin-bottom: 2px;
+}
+.lp-savings-pill-amt {
+    font-size: 2rem; font-weight: 900; color: white; letter-spacing: -1px; line-height: 1;
+}
+.lp-flags-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.85rem;
+}
+.lp-flag-chip {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px; padding: 0.65rem 0.75rem;
+    display: flex; flex-direction: column; gap: 3px;
+}
+.lp-flag-chip-top {
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 0.62rem; color: rgba(255,255,255,0.35); font-weight: 600;
+}
+.lp-flag-chip-check {
+    width: 16px; height: 16px; border-radius: 50%;
+    background: #16a34a; display: inline-flex;
+    align-items: center; justify-content: center;
+    font-size: 0.55rem; color: white; flex-shrink: 0;
+}
+.lp-flag-chip-name { font-size: 0.8rem; font-weight: 700; color: white; line-height: 1.2; }
+.lp-dispute-btn {
+    background: rgba(6,182,212,0.1); border: 1.5px solid rgba(6,182,212,0.35);
+    border-radius: 12px; padding: 0.7rem; text-align: center;
+    font-size: 0.82rem; font-weight: 700; color: #22d3ee;
+    letter-spacing: 0.2px;
+}
+
 /* Trust strip */
 .lp-trust {
     display: flex; align-items: center;
@@ -1026,6 +1162,125 @@ def render_landing_page() -> None:
         unsafe_allow_html=True,
     )
     render_care_framework()
+
+    # ── Before / After demo ─────────────────────────────────────────────
+    st.markdown(
+        '<div class="lp-sec-label" style="margin-top:2.5rem">✦ &nbsp;See It In Action</div>'
+        '<div class="lp-sec-title">From Confusing Bill to Clear Savings</div>',
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        """<div class="lp-demo-wrap">
+
+          <!-- LEFT: messy bill paper -->
+          <div class="lp-bill-paper">
+            <div class="lp-bill-stamp err">ERROR!</div>
+            <div class="lp-bill-stamp over">OVERCHARGE!</div>
+            <div class="lp-bill-header">
+              <div class="lp-bill-cross"></div>
+              <div class="lp-bill-org">
+                <div class="lp-bill-org-name">Providence Medical Center</div>
+                <div class="lp-bill-org-sub">Medical Economic Health</div>
+              </div>
+              <div class="lp-bill-date">PATIENT STATEMENT<br>02/14/2026</div>
+            </div>
+            <table class="lp-bill-table">
+              <thead>
+                <tr><th>Charges</th><th style="text-align:right">Amount</th></tr>
+              </thead>
+              <tbody>
+                <tr class="lp-bill-row-flag">
+                  <td>Facility Fee (ER Level 4)</td>
+                  <td><span class="lp-bill-circle">$3,200</span></td>
+                </tr>
+                <tr><td>CPT 99284 — ER Visit</td><td>$480.00</td></tr>
+                <tr class="lp-bill-row-flag">
+                  <td>CPT 85025 — Blood Count</td>
+                  <td><span class="lp-bill-circle">$310.00</span></td>
+                </tr>
+                <tr class="lp-bill-row-flag">
+                  <td>CPT 85025 — Blood Count ×2</td>
+                  <td><span class="lp-bill-circle">$310.00</span></td>
+                </tr>
+                <tr><td>CPT 71046 — Chest X-Ray</td><td>$820.00</td></tr>
+                <tr class="lp-bill-row-flag">
+                  <td>CPT 71046 — Chest X-Ray ×2</td>
+                  <td><span class="lp-bill-circle">$820.00</span></td>
+                </tr>
+                <tr><td>CPT 99215 — Office Follow-Up</td><td>$375.00</td></tr>
+                <tr><td>Disposable Supplies</td><td>$240.00</td></tr>
+              </tbody>
+            </table>
+            <div class="lp-bill-total">
+              <span class="lp-bill-total-lbl">Patient Responsibility</span>
+              <span class="lp-bill-total-amt">$3,945.00</span>
+            </div>
+          </div>
+
+          <!-- RIGHT: BillGuard app result -->
+          <div class="lp-phone-frame">
+            <div class="lp-phone-bar">
+              <div class="lp-phone-icon">☰</div>
+              <div class="lp-phone-bar-title">BillGuard™</div>
+              <div class="lp-phone-bar-icons">
+                <div class="lp-phone-icon">🔔</div>
+              </div>
+            </div>
+            <div class="lp-audit-label">BillGuard AI — Audit Results</div>
+            <div class="lp-savings-pill">
+              <div class="lp-savings-pill-eyebrow">Potential Savings</div>
+              <div class="lp-savings-pill-amt">$2,480.00</div>
+            </div>
+            <div class="lp-flags-grid">
+              <div class="lp-flag-chip">
+                <div class="lp-flag-chip-top">
+                  <span>#1 &nbsp;Flag Detected</span>
+                  <span class="lp-flag-chip-check">✓</span>
+                </div>
+                <div class="lp-flag-chip-name">Inflated Facility Fee</div>
+              </div>
+              <div class="lp-flag-chip">
+                <div class="lp-flag-chip-top">
+                  <span>#2 &nbsp;Flag Detected</span>
+                  <span class="lp-flag-chip-check">✓</span>
+                </div>
+                <div class="lp-flag-chip-name">Duplicate Line Items (×2)</div>
+              </div>
+              <div class="lp-flag-chip">
+                <div class="lp-flag-chip-top">
+                  <span>#3 &nbsp;Flag Detected</span>
+                  <span class="lp-flag-chip-check">✓</span>
+                </div>
+                <div class="lp-flag-chip-name">Unbundling Error</div>
+              </div>
+              <div class="lp-flag-chip">
+                <div class="lp-flag-chip-top">
+                  <span>#4 &nbsp;Flag Detected</span>
+                  <span class="lp-flag-chip-check">✓</span>
+                </div>
+                <div class="lp-flag-chip-name">Upcoding</div>
+              </div>
+              <div class="lp-flag-chip">
+                <div class="lp-flag-chip-top">
+                  <span>#5 &nbsp;Flag Detected</span>
+                  <span class="lp-flag-chip-check">✓</span>
+                </div>
+                <div class="lp-flag-chip-name">Vague Supply Charge</div>
+              </div>
+              <div class="lp-flag-chip">
+                <div class="lp-flag-chip-top">
+                  <span>#6 &nbsp;Flag Detected</span>
+                  <span class="lp-flag-chip-check">✓</span>
+                </div>
+                <div class="lp-flag-chip-name">EOB Mismatch</div>
+              </div>
+            </div>
+            <div class="lp-dispute-btn">✉️ &nbsp;Dispute Letter Generated</div>
+          </div>
+
+        </div>""",
+        unsafe_allow_html=True,
+    )
 
     # ── Why it matters ─────────────────────────────────────────────────
     st.markdown(
