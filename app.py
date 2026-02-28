@@ -262,7 +262,7 @@ html, body, .stApp, [class*="css"] {
         url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Crect x='34' y='22' width='12' height='36' rx='3' fill='rgba(255,255,255,0.018)'/%3E%3Crect x='22' y='34' width='36' height='12' rx='3' fill='rgba(255,255,255,0.018)'/%3E%3C/svg%3E"),
         linear-gradient(160deg, #050d1a 0%, #0b1e3d 45%, #07111f 100%);
     border-radius: 0;
-    padding: 4rem 3rem 3.5rem;
+    padding: 5rem 3rem 4rem;
     text-align: center;
     position: relative;
     overflow: hidden;
@@ -270,6 +270,13 @@ html, body, .stApp, [class*="css"] {
     box-shadow: none;
     margin-bottom: 1.5rem;
     margin-top: -1rem;
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
+    margin-right: calc(50% - 50vw);
+    min-height: min(92vh, 980px);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 .lp-g1 {
     position: absolute; top: -140px; right: -80px;
@@ -299,10 +306,18 @@ html, body, .stApp, [class*="css"] {
     letter-spacing: 1.2px; text-transform: uppercase;
     margin-bottom: 1.75rem;
 }
+.lp-brand {
+    font-size: clamp(2rem, 4vw, 3.2rem);
+    font-weight: 900;
+    color: white;
+    letter-spacing: -1.4px;
+    margin-bottom: 2rem;
+    line-height: 1;
+}
 .lp-title {
-    font-size: 4.4rem; font-weight: 900;
+    font-size: clamp(3rem, 8vw, 6.25rem); font-weight: 900;
     color: white; margin: 0 0 1rem;
-    line-height: 1.04; letter-spacing: -3px;
+    line-height: 0.98; letter-spacing: -3px;
 }
 .lp-accent {
     background: linear-gradient(135deg, #22d3ee 0%, #a5b4fc 100%);
@@ -310,8 +325,8 @@ html, body, .stApp, [class*="css"] {
     background-clip: text;
 }
 .lp-subtitle {
-    font-size: 1.08rem; color: #94a3b8;
-    margin: 0 auto 2.25rem; max-width: 520px; line-height: 1.75;
+    font-size: clamp(1rem, 1.7vw, 1.18rem); color: #94a3b8;
+    margin: 0 auto 2.25rem; max-width: 720px; line-height: 1.75;
 }
 .lp-ecg {
     display: block; width: 100%; height: 52px;
@@ -325,6 +340,31 @@ html, body, .stApp, [class*="css"] {
 .lp-stat-div { width: 1px; height: 40px; background: rgba(255,255,255,0.1); flex-shrink: 0; }
 .lp-stat-n { font-size: 1.85rem; font-weight: 800; color: white; line-height: 1; letter-spacing: -1px; }
 .lp-stat-l { font-size: 0.68rem; color: #4b5f7c; text-transform: uppercase; letter-spacing: 0.9px; }
+
+@media (max-width: 900px) {
+    .lp-hero {
+        padding: 3.5rem 1.25rem 3rem;
+        min-height: auto;
+    }
+    .lp-title {
+        letter-spacing: -2px;
+    }
+    .lp-stats {
+        flex-wrap: wrap;
+        gap: 1.25rem;
+    }
+    .lp-stat {
+        padding: 0 1rem;
+    }
+    .lp-stat-div {
+        display: none;
+    }
+    .lp-care-grid,
+    .lp-why-grid,
+    .metrics-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
 
 /* Section label + title */
 .lp-sec-label {
@@ -721,6 +761,30 @@ def compute_risk_score(sections: Dict[str, List[str]], local_flags: List[str]) -
     return min(score, 95)
 
 
+def summarize_flag(flag_text: str) -> str:
+    text = re.sub(r"^[-*]\s*", "", flag_text).strip()
+    if ":" in text:
+        text = text.split(":", 1)[1].strip()
+    text = re.sub(r"\s+", " ", text)
+
+    patterns = [
+        (r"duplicate|duplicated", "Possible duplicate charge found"),
+        (r"denied|denial", "Insurance denial needs explanation"),
+        (r"facility fee", "Facility fee looks unusually high"),
+        (r"bundled|bundle", "Charge may be improperly bundled"),
+        (r"contractual adjustment", "Contracted discount may be missing"),
+        (r"incorrectly coded|coding|coded", "Code may not match care"),
+        (r"balance bill|balance billing", "Possible balance billing issue"),
+        (r"lab", "Lab charge needs verification"),
+    ]
+    for pattern, summary in patterns:
+        if re.search(pattern, text, re.IGNORECASE):
+            return summary
+
+    words = text.split()
+    return " ".join(words[:5]) + ("..." if len(words) > 5 else "")
+
+
 def extract_text_from_upload(uploaded_file) -> Tuple[str, str]:
     file_name = uploaded_file.name.lower()
     if file_name.endswith(".txt"):
@@ -910,7 +974,7 @@ def render_landing_page() -> None:
             <div class="lp-g2"></div>
             <div class="lp-g3"></div>
             <div style="position:relative;z-index:2">
-                <div style="font-size:1.55rem;font-weight:900;color:white;letter-spacing:-0.6px;margin-bottom:2rem">
+                <div class="lp-brand">
                     🛡️ Bill<span style="background:linear-gradient(135deg,#22d3ee 0%,#a5b4fc 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">Guard AI</span>
                 </div>
                 <div class="lp-badge">AI-Powered Medical Bill Auditor &nbsp;·&nbsp; PDX Hacks 2026</div>
