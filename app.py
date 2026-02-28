@@ -188,11 +188,43 @@ html, body, .stApp, [class*="css"] {
 
 /* ── Summary card ────────────────────────────────────────── */
 .summary-card {
-    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
-    border: 1px solid rgba(16,185,129,0.2);
-    border-radius: 14px; padding: 1.15rem 1.5rem;
-    color: #14532d; line-height: 1.65; font-size: 0.92rem;
+    background: linear-gradient(135deg, #f8fffb 0%, #eefbf3 100%);
+    border: 1px solid rgba(16,185,129,0.16);
+    border-radius: 18px;
+    padding: 1.2rem 1.35rem 1.1rem;
+    color: #14532d;
+    box-shadow: 0 10px 24px rgba(16, 185, 129, 0.08);
+}
+.summary-lead {
+    font-size: 1.05rem;
+    line-height: 1.65;
+    font-weight: 700;
+    color: #1f5138;
+    margin-bottom: 0.9rem;
+    font-family: 'Inter', sans-serif;
+}
+.summary-points {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+}
+.summary-point {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.65rem;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: #355b48;
     font-weight: 500;
+    font-family: 'Inter', sans-serif;
+}
+.summary-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: #22c55e;
+    margin-top: 0.48rem;
+    flex-shrink: 0;
 }
 
 /* ── Itemized table ──────────────────────────────────────── */
@@ -268,6 +300,13 @@ html, body, .stApp, [class*="css"] {
 }
 .flag-subtext {
     font-size: 0.84rem; color: #475569; line-height: 1.5; font-weight: 500;
+    font-family: 'Inter', sans-serif;
+}
+.flag-detail {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: #1f2937;
+    font-weight: 500;
     font-family: 'Inter', sans-serif;
 }
 
@@ -881,6 +920,23 @@ def concise_flag_detail(flag_text: str) -> str:
     return first_sentence
 
 
+def short_flag_explainer(flag_text: str) -> str:
+    text = re.sub(r"^[-*]\s*", "", flag_text).strip()
+    if ":" in text:
+        detail = text.split(":", 1)[1].strip()
+    else:
+        detail = text
+
+    sentences = re.split(r"(?<=[.!?])\s+", detail)
+    compact = " ".join(sentence.strip() for sentence in sentences[:2] if sentence.strip())
+    compact = re.sub(r"\s+", " ", compact).strip()
+
+    words = compact.split()
+    if len(words) > 28:
+        compact = " ".join(words[:28]) + "..."
+    return compact
+
+
 def extract_text_from_upload(uploaded_file) -> Tuple[str, str]:
     file_name = uploaded_file.name.lower()
     if file_name.endswith(".txt"):
@@ -1307,13 +1363,21 @@ def render_analysis(raw_output: str, raw_bill: str, insurance_context: str) -> N
     # Summary
     section_header("📋", "Summary", "#dcfce7", "#16a34a")
     if sections["SUMMARY"]:
-        bullets = "".join(
-            f'<li style="margin-bottom:0.35rem">{re.sub(r"^[-*]\\s*", "", line)}</li>'
+        cleaned_summary = [
+            re.sub(r"^[-*]\s*", "", line).strip()
             for line in sections["SUMMARY"]
+            if re.sub(r"^[-*]\s*", "", line).strip() not in {"---", "--", "-"}
+        ]
+        lead = cleaned_summary[0] if cleaned_summary else ""
+        points = "".join(
+            f'<div class="summary-point"><span class="summary-dot"></span><span>{line}</span></div>'
+            for line in cleaned_summary[1:]
         )
         st.markdown(
-            f'<div class="summary-card"><ul style="margin:0;padding-left:1.3rem;line-height:1.7">'
-            f'{bullets}</ul></div>',
+            f'<div class="summary-card">'
+            f'<div class="summary-lead">{lead}</div>'
+            f'<div class="summary-points">{points}</div>'
+            f'</div>',
             unsafe_allow_html=True,
         )
     else:
@@ -1358,7 +1422,10 @@ def render_analysis(raw_output: str, raw_bill: str, insurance_context: str) -> N
                 unsafe_allow_html=True,
             )
             with st.expander(f"Why this matters #{index}"):
-                st.markdown(clean)
+                st.markdown(
+                    f'<div class="flag-detail">{short_flag_explainer(clean)}</div>',
+                    unsafe_allow_html=True,
+                )
     else:
         st.markdown(
             '<div class="flag-card ok"><span class="fi">✅</span>'
