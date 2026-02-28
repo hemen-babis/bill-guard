@@ -240,15 +240,36 @@ html, body, .stApp, [class*="css"] {
 
 /* ── Flag cards ──────────────────────────────────────────── */
 .flag-card {
-    display: flex; align-items: flex-start; gap: 11px;
-    padding: 0.85rem 1.15rem; border-radius: 11px;
-    margin-bottom: 0.55rem; border-left: 4px solid;
+    display: flex; align-items: flex-start; gap: 14px;
+    padding: 1rem 1.15rem; border-radius: 14px;
+    margin-bottom: 0.45rem; border-left: 4px solid;
 }
 .flag-card.err  { background: #fef2f2; border-color: #ef4444; }
 .flag-card.warn { background: #fffbeb; border-color: #f59e0b; }
 .flag-card.ok   { background: #f0fdf4; border-left: 4px solid #10b981; }
-.fi { font-size: 0.88rem; flex-shrink: 0; line-height: 1.65; }
-.ft { font-size: 0.875rem; color: #1e293b; line-height: 1.55; font-weight: 500; }
+.fi { font-size: 0.95rem; flex-shrink: 0; line-height: 1.4; margin-top: 2px; }
+.flag-copy { display: flex; flex-direction: column; gap: 4px; }
+.flag-topline { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.flag-pill {
+    display: inline-flex; align-items: center; justify-content: center;
+    padding: 3px 10px; border-radius: 999px; font-size: 0.68rem;
+    font-weight: 800; letter-spacing: 0.8px; text-transform: uppercase;
+    font-family: 'Inter', sans-serif;
+}
+.flag-pill.critical, .flag-pill.important, .flag-pill.significant {
+    background: #fee2e2; color: #b91c1c;
+}
+.flag-pill.moderate, .flag-pill.low, .flag-pill.worth {
+    background: #fef3c7; color: #b45309;
+}
+.flag-title {
+    font-size: 1rem; color: #111827; line-height: 1.3; font-weight: 800;
+    font-family: 'Inter', sans-serif;
+}
+.flag-subtext {
+    font-size: 0.84rem; color: #475569; line-height: 1.5; font-weight: 500;
+    font-family: 'Inter', sans-serif;
+}
 
 /* ── Guidance card ───────────────────────────────────────── */
 .guidance-card {
@@ -836,6 +857,30 @@ def summarize_flag(flag_text: str) -> str:
     return " ".join(words[:5]) + ("..." if len(words) > 5 else "")
 
 
+def flag_severity(flag_text: str) -> str:
+    lower = flag_text.lower()
+    for label in ["critical", "important", "significant", "moderate", "low", "worth asking"]:
+        if label in lower:
+            return label
+    return "review"
+
+
+def concise_flag_detail(flag_text: str) -> str:
+    text = re.sub(r"^[-*]\s*", "", flag_text).strip()
+    if ":" in text:
+        detail = text.split(":", 1)[1].strip()
+    else:
+        detail = text
+    first_sentence = re.split(r"(?<=[.!?])\s+", detail)[0].strip()
+    if not first_sentence:
+        first_sentence = detail
+    first_sentence = re.sub(r"\s+", " ", first_sentence)
+    words = first_sentence.split()
+    if len(words) > 14:
+        first_sentence = " ".join(words[:14]) + "..."
+    return first_sentence
+
+
 def extract_text_from_upload(uploaded_file) -> Tuple[str, str]:
     file_name = uploaded_file.name.lower()
     if file_name.endswith(".txt"):
@@ -1298,12 +1343,21 @@ def render_analysis(raw_output: str, raw_bill: str, insurance_context: str) -> N
     if combined_flags:
         for index, flag in enumerate(combined_flags, start=1):
             clean = re.sub(r"^[-*]\s*", "", flag)
+            if clean.strip() in {"-", "--", ""}:
+                continue
+            severity = flag_severity(clean)
             st.markdown(
                 f'<div class="flag-card err"><span class="fi">🚩</span>'
-                f'<span class="ft"><strong>{summarize_flag(clean)}</strong></span></div>',
+                f'<div class="flag-copy">'
+                f'<div class="flag-topline">'
+                f'<span class="flag-pill {severity.split()[0]}">{severity}</span>'
+                f'<span class="flag-title">{summarize_flag(clean)}</span>'
+                f'</div>'
+                f'<div class="flag-subtext">{concise_flag_detail(clean)}</div>'
+                f'</div></div>',
                 unsafe_allow_html=True,
             )
-            with st.expander(f"Read more about flag {index}"):
+            with st.expander(f"Why this matters #{index}"):
                 st.markdown(clean)
     else:
         st.markdown(
