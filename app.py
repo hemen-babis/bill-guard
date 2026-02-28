@@ -594,7 +594,12 @@ html, body, .stApp, [class*="css"] {
 # ─────────────────────────── core helpers ────────────────────────────
 
 def extract_money(value: str) -> float:
-    cleaned = re.sub(r"[^\d.]", "", value or "")
+    if not value:
+        return 0.0
+    match = re.search(r"\$?\s*([\d,]+(?:\.\d{1,2})?)", value)
+    if not match:
+        return 0.0
+    cleaned = match.group(1).replace(",", "")
     try:
         return float(cleaned)
     except ValueError:
@@ -653,6 +658,13 @@ Tasks:
 5. Generate a short dispute script the patient can use by phone or secure message.
 6. If the insurance explanation of benefits conflicts with the provider bill, call that out clearly.
 
+Important judgment rules:
+- Do not overstate risk. If the bill is mostly reasonable and only has one or two clarification questions, say so.
+- Separate severe issues from low-severity "worth asking about" items.
+- Use severity labels inside FLAGS such as CRITICAL, IMPORTANT, MODERATE, or LOW.
+- Always include GUIDANCE, even if the guidance is simply to call and ask for clarification rather than dispute aggressively.
+- If the overall bill appears mostly clean, say that in SUMMARY.
+
 Return plain text only using this exact section structure and headings:
 SUMMARY
 - ...
@@ -686,7 +698,7 @@ def stream_claude(api_key: str, raw_bill: str, insurance_context: str) -> Genera
     client = Anthropic(api_key=api_key)
     with client.messages.stream(
         model=MODEL_NAME,
-        max_tokens=1400,
+        max_tokens=2200,
         temperature=0.2,
         system=(
             "You are a world-class medical billing advocate. "
@@ -759,16 +771,45 @@ def find_money_in_lines(lines: List[str]) -> Dict[str, float]:
 def compute_risk_score(sections: Dict[str, List[str]], local_flags: List[str]) -> int:
     score = 0
     all_flags = sections["FLAGS"] + local_flags
-    score += min(len(all_flags) * 15, 60)
+
+    for flag in sections["FLAGS"]:
+        lower = flag.lower()
+        if "critical" in lower:
+            score += 22
+        elif "important" in lower or "significant" in lower:
+            score += 14
+        elif "moderate" in lower:
+            score += 8
+        elif "low" in lower or "worth asking" in lower:
+            score += 4
+        else:
+            score += 6
+
+    score += min(len(local_flags) * 8, 16)
+
     if any("duplicate" in f.lower() for f in all_flags):
-        score += 10
+        score += 8
+    if any("balance bill" in f.lower() or "denied" in f.lower() for f in all_flags):
+        score += 6
+
     insurance_text = " ".join(sections["INSURANCE"]).lower()
     idx = insurance_text.find("potential")
     if idx != -1:
         m = re.search(r"\$\s*([\d,]+)", insurance_text[idx:])
-        if m and extract_money(m.group(1)) > 500:
-            score += 15
-    return min(score, 95)
+        if m:
+            savings = extract_money(m.group(1))
+            if savings > 1000:
+                score += 15
+            elif savings > 250:
+                score += 8
+            elif savings > 0:
+                score += 3
+
+    summary_text = " ".join(sections["SUMMARY"]).lower()
+    if "mostly clean" in summary_text or "mostly reasonable" in summary_text:
+        score -= 12
+
+    return max(5, min(score, 95))
 
 
 def summarize_flag(flag_text: str) -> str:
@@ -1023,18 +1064,18 @@ def render_landing_page() -> None:
         unsafe_allow_html=True,
     )
 
+    # Primary CTA
+    _, cta_col, _ = st.columns([1.5, 2, 1.5])
+    if cta_col.button("🔍 Analyze My Bill →", type="primary", use_container_width=True):
+        st.session_state.page = "app"
+        st.rerun()
+
     st.markdown(
         '<div class="lp-sec-label">✦ &nbsp;What BillGuard Shows You</div>'
         '<div class="lp-sec-title">From messy bill to clear action</div>',
         unsafe_allow_html=True,
     )
     st.image("hero-demo.png", use_container_width=True)
-
-    # Primary CTA
-    _, cta_col, _ = st.columns([1.5, 2, 1.5])
-    if cta_col.button("🔍 Analyze My Bill →", type="primary", use_container_width=True):
-        st.session_state.page = "app"
-        st.rerun()
 
     # ── CARE Framework ─────────────────────────────────────────────────
     st.markdown(
