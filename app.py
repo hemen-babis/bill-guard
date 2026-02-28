@@ -273,18 +273,19 @@ html, body, .stApp, [class*="css"] {
 /* ── Flag cards ──────────────────────────────────────────── */
 .flag-card {
     display: flex; align-items: flex-start; gap: 14px;
-    padding: 1rem 1.15rem; border-radius: 14px;
-    margin-bottom: 0.45rem; border-left: 4px solid;
+    padding: 1.15rem 1.25rem; border-radius: 16px;
+    margin-bottom: 0.55rem; border-left: 5px solid;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05);
 }
-.flag-card.err  { background: #fef2f2; border-color: #ef4444; }
-.flag-card.warn { background: #fffbeb; border-color: #f59e0b; }
+.flag-card.err  { background: linear-gradient(135deg, #fff7f7 0%, #fff1f1 100%); border-color: #ef4444; }
+.flag-card.warn { background: linear-gradient(135deg, #fffdf5 0%, #fff8e7 100%); border-color: #f59e0b; }
 .flag-card.ok   { background: #f0fdf4; border-left: 4px solid #10b981; }
-.fi { font-size: 0.95rem; flex-shrink: 0; line-height: 1.4; margin-top: 2px; }
-.flag-copy { display: flex; flex-direction: column; gap: 4px; }
-.flag-topline { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.fi { font-size: 1rem; flex-shrink: 0; line-height: 1.4; margin-top: 4px; }
+.flag-copy { display: flex; flex-direction: column; gap: 0.35rem; width: 100%; }
+.flag-topline { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .flag-pill {
     display: inline-flex; align-items: center; justify-content: center;
-    padding: 3px 10px; border-radius: 999px; font-size: 0.68rem;
+    padding: 4px 11px; border-radius: 999px; font-size: 0.7rem;
     font-weight: 800; letter-spacing: 0.8px; text-transform: uppercase;
     font-family: 'Inter', sans-serif;
 }
@@ -295,16 +296,16 @@ html, body, .stApp, [class*="css"] {
     background: #fef3c7; color: #b45309;
 }
 .flag-title {
-    font-size: 1rem; color: #111827; line-height: 1.3; font-weight: 800;
+    font-size: 1.12rem; color: #111827; line-height: 1.35; font-weight: 800;
     font-family: 'Inter', sans-serif;
 }
 .flag-subtext {
-    font-size: 0.84rem; color: #475569; line-height: 1.5; font-weight: 500;
+    font-size: 0.92rem; color: #5b6475; line-height: 1.55; font-weight: 500;
     font-family: 'Inter', sans-serif;
 }
 .flag-detail {
-    font-size: 0.95rem;
-    line-height: 1.6;
+    font-size: 1rem;
+    line-height: 1.65;
     color: #1f2937;
     font-weight: 500;
     font-family: 'Inter', sans-serif;
@@ -874,26 +875,21 @@ def compute_risk_score(sections: Dict[str, List[str]], local_flags: List[str]) -
 
 def summarize_flag(flag_text: str) -> str:
     text = re.sub(r"^[-*]\s*", "", flag_text).strip()
+    text = re.sub(r"^flag\s*\d+\s*[—|-]\s*", "", text, flags=re.IGNORECASE)
+    text = re.sub(r"^\[[A-Z\s]+\]\s*", "", text)
+    text = re.sub(r"^(critical|important|significant|moderate|low|worth asking)\s*[|—:-]\s*", "", text, flags=re.IGNORECASE)
+    text = re.sub(r"\s+", " ", text).strip()
+
     if ":" in text:
-        text = text.split(":", 1)[1].strip()
-    text = re.sub(r"\s+", " ", text)
+        title = text.split(":", 1)[0].strip()
+    else:
+        title = re.split(r"(?<=[.!?])\s+", text)[0].strip()
 
-    patterns = [
-        (r"duplicate|duplicated", "Possible duplicate charge found"),
-        (r"denied|denial", "Insurance denial needs explanation"),
-        (r"facility fee", "Facility fee looks unusually high"),
-        (r"bundled|bundle", "Charge may be improperly bundled"),
-        (r"contractual adjustment", "Contracted discount may be missing"),
-        (r"incorrectly coded|coding|coded", "Code may not match care"),
-        (r"balance bill|balance billing", "Possible balance billing issue"),
-        (r"lab", "Lab charge needs verification"),
-    ]
-    for pattern, summary in patterns:
-        if re.search(pattern, text, re.IGNORECASE):
-            return summary
+    title = re.sub(r"^\[[A-Z\s]+\]\s*", "", title).strip(" -")
+    if len(title.split()) > 9:
+        title = " ".join(title.split()[:9]) + "..."
 
-    words = text.split()
-    return " ".join(words[:5]) + ("..." if len(words) > 5 else "")
+    return title or "Billing issue needs review"
 
 
 def flag_severity(flag_text: str) -> str:
@@ -910,13 +906,14 @@ def concise_flag_detail(flag_text: str) -> str:
         detail = text.split(":", 1)[1].strip()
     else:
         detail = text
+    detail = re.sub(r"^\[[A-Z\s]+\]\s*", "", detail).strip()
     first_sentence = re.split(r"(?<=[.!?])\s+", detail)[0].strip()
     if not first_sentence:
         first_sentence = detail
     first_sentence = re.sub(r"\s+", " ", first_sentence)
     words = first_sentence.split()
-    if len(words) > 14:
-        first_sentence = " ".join(words[:14]) + "..."
+    if len(words) > 18:
+        first_sentence = " ".join(words[:18]) + "..."
     return first_sentence
 
 
@@ -931,9 +928,10 @@ def short_flag_explainer(flag_text: str) -> str:
     compact = " ".join(sentence.strip() for sentence in sentences[:2] if sentence.strip())
     compact = re.sub(r"\s+", " ", compact).strip()
 
+    compact = re.sub(r"^\[[A-Z\s]+\]\s*", "", compact).strip()
     words = compact.split()
-    if len(words) > 28:
-        compact = " ".join(words[:28]) + "..."
+    if len(words) > 34:
+        compact = " ".join(words[:34]) + "..."
     return compact
 
 
@@ -1421,7 +1419,7 @@ def render_analysis(raw_output: str, raw_bill: str, insurance_context: str) -> N
                 f'</div></div>',
                 unsafe_allow_html=True,
             )
-            with st.expander(f"Why this matters #{index}"):
+            with st.expander(f"What to ask for flag {index}"):
                 st.markdown(
                     f'<div class="flag-detail">{short_flag_explainer(clean)}</div>',
                     unsafe_allow_html=True,
