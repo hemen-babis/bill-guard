@@ -1013,6 +1013,13 @@ def render_landing_page() -> None:
         unsafe_allow_html=True,
     )
 
+    st.markdown(
+        '<div class="lp-sec-label">✦ &nbsp;What BillGuard Shows You</div>'
+        '<div class="lp-sec-title">From messy bill to clear action</div>',
+        unsafe_allow_html=True,
+    )
+    st.image("hero-demo.png", use_container_width=True)
+
     # Primary CTA
     _, cta_col, _ = st.columns([1.5, 2, 1.5])
     if cta_col.button("🔍 Analyze My Bill →", type="primary", use_container_width=True):
