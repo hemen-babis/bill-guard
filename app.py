@@ -734,6 +734,8 @@ Important judgment rules:
 - Keep DISPUTE_LETTER professional and concise.
 - ACTION_PLAN should be a numbered sequence of practical next steps. It is separate from the formal letter.
 - PHONE_SCRIPT should be brief and speakable.
+- The response is invalid if any required section is missing.
+- Put ACTION_PLAN, DISPUTE_LETTER, and PHONE_SCRIPT before GUIDANCE.
 - If the overall bill appears mostly clean, say that in SUMMARY.
 
 Return plain text only using this exact section structure and headings:
@@ -752,9 +754,6 @@ INSURANCE
 FLAGS
 - ...
 
-GUIDANCE
-- ...
-
 ACTION_PLAN
 1. ...
 
@@ -764,6 +763,9 @@ DISPUTE_LETTER
 ...
 
 PHONE_SCRIPT
+- ...
+
+GUIDANCE
 - ...
 
 Bill input:
@@ -780,7 +782,7 @@ def stream_claude(api_key: str, raw_bill: str, insurance_context: str) -> Genera
     client = Anthropic(api_key=api_key)
     with client.messages.stream(
         model=MODEL_NAME,
-        max_tokens=2200,
+        max_tokens=3600,
         temperature=0.2,
         system=(
             "You are a world-class medical billing advocate. "
