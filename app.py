@@ -65,6 +65,16 @@ html, body, .stApp, [class*="css"] {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
 }
 
+.block-container {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    max-width: 100% !important;
+}
+
+[data-testid="stAppViewContainer"] > .main {
+    padding-top: 0 !important;
+}
+
 /* ── Background ─────────────────────────────────────────── */
 .stApp {
     background: #f0f4ff;
@@ -269,7 +279,7 @@ html, body, .stApp, [class*="css"] {
     border: none;
     box-shadow: none;
     margin-bottom: 1.5rem;
-    margin-top: -1rem;
+    margin-top: 0;
     width: 100vw;
     margin-left: calc(50% - 50vw);
     margin-right: calc(50% - 50vw);
