@@ -362,10 +362,15 @@ html, body, .stApp, [class*="css"] {
 }
 .lp-care-icon { font-size: 1.75rem; line-height: 1; margin-bottom: 2px; }
 .lp-care-step {
-    font-size: 0.65rem; font-weight: 800; letter-spacing: 1.5px;
-    text-transform: uppercase; color: #94a3b8; margin-bottom: -2px;
+    font-size: 2rem; font-weight: 900; letter-spacing: -1px;
+    text-transform: uppercase; color: #0f172a; line-height: 1;
+    margin-bottom: 2px;
 }
-.lp-care-title { font-size: 0.98rem; font-weight: 700; color: #0f172a; }
+.lp-care-word {
+    font-size: 0.72rem; font-weight: 800; letter-spacing: 1.6px;
+    text-transform: uppercase; color: #6366f1; margin-bottom: 4px;
+}
+.lp-care-title { font-size: 1.08rem; font-weight: 800; color: #0f172a; }
 .lp-care-desc { font-size: 0.82rem; color: #64748b; line-height: 1.58; }
 
 /* Why section — dark medical feel */
@@ -1030,25 +1035,29 @@ def render_care_framework() -> None:
         """<div class="lp-care-grid">
             <div class="lp-care-card">
                 <div class="lp-care-icon">📋</div>
-                <div class="lp-care-step">C — Capture</div>
+                <div class="lp-care-step">C</div>
+                <div class="lp-care-word">Capture</div>
                 <div class="lp-care-title">Upload your bill</div>
                 <div class="lp-care-desc">Paste or upload your provider bill and insurance EOB. Supports PDF, text, and JSON.</div>
             </div>
             <div class="lp-care-card">
                 <div class="lp-care-icon">🩺</div>
-                <div class="lp-care-step">A — Analyze</div>
+                <div class="lp-care-step">A</div>
+                <div class="lp-care-word">Analyze</div>
                 <div class="lp-care-title">AI audits every line</div>
                 <div class="lp-care-desc">Claude decodes every CPT code, compares against your EOB, and detects anomalies.</div>
             </div>
             <div class="lp-care-card">
                 <div class="lp-care-icon">🔍</div>
-                <div class="lp-care-step">R — Review</div>
+                <div class="lp-care-step">R</div>
+                <div class="lp-care-word">Review</div>
                 <div class="lp-care-title">See your results</div>
                 <div class="lp-care-desc">Get a risk score, itemized breakdown, red flags, and plain-English summary instantly.</div>
             </div>
             <div class="lp-care-card">
                 <div class="lp-care-icon">✉️</div>
-                <div class="lp-care-step">E — Escalate</div>
+                <div class="lp-care-step">E</div>
+                <div class="lp-care-word">Escalate</div>
                 <div class="lp-care-title">Dispute with confidence</div>
                 <div class="lp-care-desc">Download a ready-to-send dispute letter and ask Claude follow-up questions.</div>
             </div>
@@ -1358,6 +1367,9 @@ def main() -> None:
         "Always verify with your provider or insurer.</div>",
         unsafe_allow_html=True,
     )
+
+    bill_text = st.session_state.get("bill_text", "")
+    insurance_text = st.session_state.get("insurance_text", "")
 
     analyze = st.button("🔍 Analyze My Bill", type="primary", use_container_width=True)
 
