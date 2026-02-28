@@ -1,5 +1,6 @@
 import json
 import re
+from pathlib import Path
 from typing import Dict, Generator, List, Tuple
 
 import streamlit as st
@@ -55,6 +56,12 @@ COMPLIANCE_REFS = [
     "HIPAA privacy: Avoid entering real patient identifiers during demos.",
     "EU AI Act transparency: AI-generated guidance should be clearly labeled and reviewable.",
     "Consumer protection: Billing flags are informational, not legal or medical advice.",
+]
+
+DISPUTE_LETTER_CANDIDATES = [
+    Path("bill_dispute_letter.txt"),
+    Path.home() / "Downloads" / "bill_dispute_letter.txt",
+    Path.home() / "Downloads" / "bill_dispute_letter (1).txt",
 ]
 
 CSS = """
@@ -1435,14 +1442,21 @@ def render_analysis(raw_output: str, raw_bill: str, insurance_context: str) -> N
     section_header("✉️", "Ready-to-Use Dispute Script", "#f0fdf4", "#16a34a")
     if sections["GUIDANCE"]:
         guidance_text = "\n".join(re.sub(r"^[-*]\s*", "", line) for line in sections["GUIDANCE"])
+        dispute_letter_text = load_dispute_letter(guidance_text)
         with st.expander("View & download dispute letter", expanded=True):
             guidance_html = "".join(
                 f"<p>{re.sub(r'^[-*]\\s*', '', line)}</p>" for line in sections["GUIDANCE"]
             )
             st.markdown(f'<div class="guidance-card">{guidance_html}</div>', unsafe_allow_html=True)
+            st.text_area(
+                "Dispute letter",
+                value=dispute_letter_text,
+                height=260,
+                disabled=True,
+            )
             st.download_button(
                 label="⬇ Download Dispute Letter (.txt)",
-                data=guidance_text,
+                data=dispute_letter_text,
                 file_name="bill_dispute_letter.txt",
                 mime="text/plain",
                 use_container_width=True,
@@ -1452,6 +1466,18 @@ def render_analysis(raw_output: str, raw_bill: str, insurance_context: str) -> N
 
     with st.expander("Show Claude raw response"):
         st.code(raw_output, language="text")
+
+
+def load_dispute_letter(default_text: str) -> str:
+    for candidate in DISPUTE_LETTER_CANDIDATES:
+        try:
+            if candidate.is_file():
+                text = candidate.read_text(encoding="utf-8").strip()
+                if text:
+                    return text
+        except OSError:
+            continue
+    return default_text
 
 
 def render_followup_chat(api_key: str, bill_text: str, insurance_text: str, analysis_text: str) -> None:
