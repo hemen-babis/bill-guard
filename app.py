@@ -1,6 +1,5 @@
 import json
 import re
-from pathlib import Path
 from typing import Dict, Generator, List, Tuple
 
 import streamlit as st
@@ -56,12 +55,6 @@ COMPLIANCE_REFS = [
     "HIPAA privacy: Avoid entering real patient identifiers during demos.",
     "EU AI Act transparency: AI-generated guidance should be clearly labeled and reviewable.",
     "Consumer protection: Billing flags are informational, not legal or medical advice.",
-]
-
-DISPUTE_LETTER_CANDIDATES = [
-    Path("bill_dispute_letter.txt"),
-    Path.home() / "Downloads" / "bill_dispute_letter.txt",
-    Path.home() / "Downloads" / "bill_dispute_letter (1).txt",
 ]
 
 CSS = """
@@ -723,14 +716,24 @@ Tasks:
 2. Itemize all charges with category, amount, and explanation.
 3. Flag possible issues such as duplicates, unusual amounts, inconsistencies, missing context, payer/provider mismatches, or charges that deserve clarification.
 4. Break down the finances: total billed, insurance paid, patient owes, and estimated potential overcharge or savings opportunity.
-5. Generate a short dispute script the patient can use by phone or secure message.
-6. If the insurance explanation of benefits conflicts with the provider bill, call that out clearly.
+5. Generate a formal dispute letter that is specific to this exact case, using the facts from the bill and EOB.
+6. Generate a short phone script the patient can use when calling the provider or insurer.
+7. Generate a short action plan with concrete next steps in the right order.
+8. If the insurance explanation of benefits conflicts with the provider bill, call that out clearly.
 
 Important judgment rules:
 - Do not overstate risk. If the bill is mostly reasonable and only has one or two clarification questions, say so.
 - Separate severe issues from low-severity "worth asking about" items.
 - Use severity labels inside FLAGS such as CRITICAL, IMPORTANT, MODERATE, or LOW.
 - Always include GUIDANCE, even if the guidance is simply to call and ask for clarification rather than dispute aggressively.
+- Always include DISPUTE_LETTER.
+- Always include ACTION_PLAN.
+- DISPUTE_LETTER must read like a real ready-to-send letter, not a checklist, numbered plan, or notes.
+- DISPUTE_LETTER must be tailored to the uploaded case. Reference actual conflicts, dates, totals, review status, and request an itemized bill, payment hold, and written response when supported by the inputs.
+- If patient or provider names are missing, use bracketed placeholders such as [Patient Name] or [Provider Name].
+- Keep DISPUTE_LETTER professional and concise.
+- ACTION_PLAN should be a numbered sequence of practical next steps. It is separate from the formal letter.
+- PHONE_SCRIPT should be brief and speakable.
 - If the overall bill appears mostly clean, say that in SUMMARY.
 
 Return plain text only using this exact section structure and headings:
@@ -750,6 +753,17 @@ FLAGS
 - ...
 
 GUIDANCE
+- ...
+
+ACTION_PLAN
+1. ...
+
+DISPUTE_LETTER
+[Date]
+[Provider Billing Department]
+...
+
+PHONE_SCRIPT
 - ...
 
 Bill input:
@@ -795,7 +809,16 @@ def stream_chat_response(api_key: str, messages: List[Dict]) -> Generator[str, N
 
 
 def parse_structured_sections(raw_output: str) -> Dict[str, List[str]]:
-    sections = {"SUMMARY": [], "ITEMIZED": [], "INSURANCE": [], "FLAGS": [], "GUIDANCE": []}
+    sections = {
+        "SUMMARY": [],
+        "ITEMIZED": [],
+        "INSURANCE": [],
+        "FLAGS": [],
+        "GUIDANCE": [],
+        "ACTION_PLAN": [],
+        "DISPUTE_LETTER": [],
+        "PHONE_SCRIPT": [],
+    }
     current = None
     for line in raw_output.splitlines():
         stripped = line.strip()
@@ -1438,20 +1461,37 @@ def render_analysis(raw_output: str, raw_bill: str, insurance_context: str) -> N
             unsafe_allow_html=True,
         )
 
-    # Dispute guidance
-    section_header("✉️", "Ready-to-Use Dispute Script", "#f0fdf4", "#16a34a")
-    if sections["GUIDANCE"]:
-        guidance_text = "\n".join(re.sub(r"^[-*]\s*", "", line) for line in sections["GUIDANCE"])
-        dispute_letter_text = load_dispute_letter(guidance_text)
-        with st.expander("View & download dispute letter", expanded=True):
-            guidance_html = "".join(
-                f"<p>{re.sub(r'^[-*]\\s*', '', line)}</p>" for line in sections["GUIDANCE"]
+    # Action plan
+    section_header("🗂️", "Action Plan", "#eff6ff", "#2563eb")
+    if sections["ACTION_PLAN"]:
+        action_plan_text = "\n".join(re.sub(r"^[-*]\s*", "", line) for line in sections["ACTION_PLAN"])
+        with st.expander("View action plan", expanded=True):
+            st.text_area(
+                "Action plan",
+                value=action_plan_text,
+                height=260,
+                disabled=True,
             )
-            st.markdown(f'<div class="guidance-card">{guidance_html}</div>', unsafe_allow_html=True)
+    elif sections["GUIDANCE"]:
+        guidance_html = "".join(
+            f"<p>{re.sub(r'^[-*]\\s*', '', line)}</p>" for line in sections["GUIDANCE"]
+        )
+        st.markdown(f'<div class="guidance-card">{guidance_html}</div>', unsafe_allow_html=True)
+    else:
+        st.info("No action plan was parsed. Review the raw response below.")
+
+    # Dispute letter
+    section_header("✉️", "Case-Specific Dispute Letter", "#f0fdf4", "#16a34a")
+    if sections["DISPUTE_LETTER"]:
+        dispute_letter_text = "\n".join(
+            line if line.strip() else ""
+            for line in sections["DISPUTE_LETTER"]
+        ).strip()
+        with st.expander("View & download dispute letter", expanded=True):
             st.text_area(
                 "Dispute letter",
                 value=dispute_letter_text,
-                height=260,
+                height=360,
                 disabled=True,
             )
             st.download_button(
@@ -1462,24 +1502,20 @@ def render_analysis(raw_output: str, raw_bill: str, insurance_context: str) -> N
                 use_container_width=True,
             )
     else:
-        st.info("No dispute script was parsed. Review the raw response below.")
+        st.info("No dispute letter was parsed. Review the raw response below.")
+
+    if sections["PHONE_SCRIPT"]:
+        with st.expander("Call script"):
+            phone_script = "\n".join(re.sub(r"^[-*]\s*", "", line) for line in sections["PHONE_SCRIPT"])
+            st.text_area(
+                "Phone script",
+                value=phone_script,
+                height=180,
+                disabled=True,
+            )
 
     with st.expander("Show Claude raw response"):
         st.code(raw_output, language="text")
-
-
-def load_dispute_letter(default_text: str) -> str:
-    for candidate in DISPUTE_LETTER_CANDIDATES:
-        try:
-            if candidate.is_file():
-                text = candidate.read_text(encoding="utf-8").strip()
-                if text:
-                    return text
-        except OSError:
-            continue
-    return default_text
-
-
 def render_followup_chat(api_key: str, bill_text: str, insurance_text: str, analysis_text: str) -> None:
     st.markdown('<div class="cdiv"></div>', unsafe_allow_html=True)
     section_header("💬", "Ask Follow-Up Questions", "#e0e7ff", "#4f46e5")
